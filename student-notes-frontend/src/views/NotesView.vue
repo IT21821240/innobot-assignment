@@ -6,7 +6,25 @@ const notes = ref([])
 const loading = ref(false)
 const error = ref('')
 const validationErrors = ref({})
-const success = ref('')
+const creating = ref(false)
+const archivingId = ref(null)
+const toast = ref({
+  show: false,
+  message: '',
+  type: 'success', // success | error
+})
+
+let toastTimeout = null
+
+const showToast = (message, type = 'success') => {
+  clearTimeout(toastTimeout)
+
+  toast.value = { show: true, message, type }
+
+  toastTimeout = setTimeout(() => {
+    toast.value.show = false
+  }, 3000)
+}
 
 const filter = ref('')
 
@@ -33,7 +51,7 @@ const fetchNotes = async () => {
 const handleCreate = async () => {
   validationErrors.value = {}
   error.value = ''
-  success.value = ''
+  creating.value = true
 
   if (!form.value.title.trim()) {
     validationErrors.value.title = 'Title is required'
@@ -52,17 +70,14 @@ const handleCreate = async () => {
   }
 
   if (Object.keys(validationErrors.value).length) {
+  showToast('Please fix validation errors', 'error')
     return
   }
 
   try {
     await createNote(form.value)
 
-    success.value = 'Note created successfully.'
-
-    setTimeout(() => {
-      success.value = ''
-    }, 3000)
+    showToast('Note created successfully.', 'success')
 
     form.value = {
       title: '',
@@ -75,21 +90,23 @@ const handleCreate = async () => {
     if (err.response?.status === 422) {
       validationErrors.value = err.response.data.errors
     } else {
-      error.value = 'Failed to create note'
+      showToast('Failed to create note', 'error')
     }
+  } finally {
+    creating.value = false
   }
 }
 
 const handleArchive = async (id) => {
+archivingId.value = id
   try {
     await archiveNote(id)
-    success.value = 'Note archived successfully.'
-    setTimeout(() => {
-      success.value = ''
-    }, 3000)
+    showToast('Note archived successfully.', 'success')
     await fetchNotes()
   } catch {
-    error.value = 'Failed to archive note'
+    showToast('Failed to archive note', 'error')
+  }finally {
+    archivingId.value = null
   }
 }
 
@@ -175,7 +192,7 @@ onMounted(fetchNotes)
 
           <button
             @click="handleCreate"
-            :disabled="loading"
+            :disabled="creating.value"
             class="bg-slate-700 text-white px-6 py-3 rounded-lg hover:bg-slate-800 transition"
           >
             Create Note
@@ -219,12 +236,16 @@ onMounted(fetchNotes)
         <p class="text-slate-500 mt-2">Create your first note to get started.</p>
       </div>
 
-      <!-- Success -->
+      <!-- Toast -->
       <div
-        v-if="success"
-        class="bg-green-100 border border-green-200 text-green-700 rounded-xl p-4 mb-4"
+        v-if="toast.show"
+        class="fixed top-5 right-5 px-5 py-3 rounded-lg shadow-lg text-white transition"
+        :class="{
+          'bg-green-600': toast.type === 'success',
+          'bg-red-600': toast.type === 'error',
+        }"
       >
-        {{ success }}
+        {{ toast.message }}
       </div>
 
       <!-- Notes -->
@@ -264,7 +285,7 @@ onMounted(fetchNotes)
             <button
               v-else
               @click="handleArchive(note.id)"
-              :disabled="loading"
+              :disabled="archivingId === note.id"
               class="bg-slate-800 text-white px-4 py-2 rounded-lg hover:bg-slate-900 transition"
             >
               Archive Note
