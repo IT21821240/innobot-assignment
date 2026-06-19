@@ -1,15 +1,16 @@
-import { mount } from '@vue/test-utils'
+import { mount, flushPromises } from '@vue/test-utils'
 import { describe, it, expect, vi } from 'vitest'
 import NoteApp from '../src/views/NotesView.vue'
+import { createNote } from '../src/services/noteService'
 
-// Mock API
 vi.mock('../src/services/noteService', () => ({
   getNotes: vi.fn(() => Promise.resolve({ data: [] })),
   createNote: vi.fn(() => Promise.resolve({})),
   archiveNote: vi.fn(() => Promise.resolve({}))
 }))
 
-describe('NoteApp.vue', () => {
+describe('NotesView.vue', () => {
+
   it('shows validation error when title is empty', async () => {
     const wrapper = mount(NoteApp)
 
@@ -26,7 +27,12 @@ describe('NoteApp.vue', () => {
 
     await wrapper.find('button').trigger('click')
 
-    // success message appears
+    await flushPromises()
+
+    // check API call
+    expect(createNote).toHaveBeenCalled()
+
+    // check success message
     expect(wrapper.text()).toContain('Note created successfully.')
   })
 })
