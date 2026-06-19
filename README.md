@@ -41,12 +41,12 @@ GitHub: https://github.com/IT21821240/innobot-assignment
 - Responsive UI using Tailwind CSS
 - frontend unit test coverage
 - Toast notification system
+- Pagination added
 
 ---
 
 ## ⏳ Future Improvements
 
-- Pagination (backend + frontend)
 - Authentication (Laravel Sanctum / JWT)
 - Role-based access control (admin/user)
 - Better component structure (Vue components)
@@ -88,27 +88,32 @@ npm run dev
 
 ## 📸 Sample Screenshots
 
-### ➕ Create New Note
+### Create New Note
 ![Create Note](./screenshots/create-note.png)
 
 ---
 
-### ⚠️ Validate Notes
+### Validate Notes
 ![Filter](./screenshots/validate.png)
 
 ---
 
-### ⚠️ Filter Notes
+### Filter Notes
 ![Filter](./screenshots/filter.png)
 
 ---
 
-### 📦 Archived Notes
+### Archived Notes
 ![Archived Notes](./screenshots/archived.png)
 
 ---
 
-### 📦 Passed Test cases
-![Archived Notes](./screenshots/testcase.png)
+### Passed Test cases
+![Test Cases](./screenshots/testcase.png)
+
+---
+
+### Pagination added
+![Pagination](./screenshots/pagination.png)
 
 ---
