@@ -1,8 +1,12 @@
 <script setup>
 import { ref, onMounted } from 'vue'
 import { getNotes, createNote, archiveNote } from '../services/noteService'
+import { computed } from 'vue'
 
-const notes = ref([])
+const allNotes = ref([])
+const notes = computed(() => allNotes.value)
+const currentPage = ref(1)
+const perPage = 5
 const loading = ref(false)
 const error = ref('')
 const validationErrors = ref({})
@@ -40,11 +44,34 @@ const fetchNotes = async () => {
 
   try {
     const response = await getNotes(filter.value)
-    notes.value = response.data
+    allNotes.value = response.data
+    currentPage.value = 1
   } catch {
     error.value = 'Failed to load notes'
   } finally {
     loading.value = false
+  }
+}
+
+const paginatedNotes = computed(() => {
+  const start = (currentPage.value - 1) * perPage
+  const end = start + perPage
+  return allNotes.value.slice(start, end)
+})
+
+const totalPages = computed(() => {
+  return Math.ceil(allNotes.value.length / perPage)
+})
+
+const nextPage = () => {
+  if (currentPage.value < totalPages.value) {
+    currentPage.value++
+  }
+}
+
+const prevPage = () => {
+  if (currentPage.value > 1) {
+    currentPage.value--
   }
 }
 
@@ -250,7 +277,7 @@ onMounted(fetchNotes)
 
       <!-- Notes -->
       <div class="grid gap-5">
-        <div v-for="note in notes" :key="note.id" class="bg-white rounded-2xl shadow-md p-6">
+        <div v-for="note in paginatedNotes" :key="note.id" class="bg-white rounded-2xl shadow-md p-6">
           <div class="flex justify-between items-start gap-4">
             <div>
               <h3 class="text-xl font-semibold text-slate-800">
@@ -295,4 +322,25 @@ onMounted(fetchNotes)
       </div>
     </div>
   </div>
+  <div v-if="totalPages > 1" class="flex justify-center items-center gap-3 mt-6">
+  <button
+    class="px-3 py-1 border rounded"
+    :disabled="currentPage === 1"
+    @click="prevPage"
+  >
+    Prev
+  </button>
+
+  <span class="text-sm text-gray-600">
+    Page {{ currentPage }} of {{ totalPages }}
+  </span>
+
+  <button
+    class="px-3 py-1 border rounded"
+    :disabled="currentPage === totalPages"
+    @click="nextPage"
+  >
+    Next
+  </button>
+</div>
 </template>
